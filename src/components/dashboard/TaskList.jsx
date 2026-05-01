@@ -14,8 +14,28 @@ const PROJECT_COLORS = {
 
 const DEFAULT_COLOR = { bg: 'rgba(0,0,0,0.04)', text: '#666' }
 
-export default function TaskList({ tasks, totalHours, onAdd, onEdit, onDelete }) {
+export default function TaskList({ tasks, totalHours, loading, onAdd, onEdit, onDelete }) {
   const [hoveredTask, setHoveredTask] = useState(null)
+
+  if (loading) {
+    return (
+      <div className="rounded-card border border-brown-border bg-white overflow-hidden">
+        <div className="border-b border-brown-hover px-6 py-4">
+          <div className="h-5 w-40 animate-pulse rounded bg-brown-hover" />
+        </div>
+        <div className="p-6 space-y-4">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="flex items-center gap-4">
+              <div className="h-5 w-20 animate-pulse rounded-[10px] bg-brown-hover" />
+              <div className="h-4 flex-1 animate-pulse rounded bg-brown-hover" />
+              <div className="h-4 w-8 animate-pulse rounded bg-brown-hover" />
+              <div className="h-4 w-14 animate-pulse rounded bg-brown-hover" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <motion.div

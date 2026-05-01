@@ -3,8 +3,10 @@ import { motion } from 'framer-motion'
 import { Upload, FileCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/auth'
+import { useToast } from '../../lib/toast'
 
 export default function PlanillaUpload({ year, month, periodId, onUploaded }) {
+  const toast = useToast()
   const { session } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [uploaded, setUploaded] = useState(false)
@@ -14,11 +16,11 @@ export default function PlanillaUpload({ year, month, periodId, onUploaded }) {
 
   async function handleFile(file) {
     if (!file || !file.name.endsWith('.pdf')) {
-      alert('Solo se permiten archivos PDF')
+      toast.error('Solo se permiten archivos PDF')
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('El archivo no puede superar 5MB')
+      toast.error('El archivo no puede superar 5MB')
       return
     }
 
@@ -47,7 +49,7 @@ export default function PlanillaUpload({ year, month, periodId, onUploaded }) {
       onUploaded?.(path)
     } catch (err) {
       console.error('Upload error:', err)
-      alert('Error al subir el archivo: ' + err.message)
+      toast.error('Error al subir el archivo: ' + err.message)
     } finally {
       setUploading(false)
     }

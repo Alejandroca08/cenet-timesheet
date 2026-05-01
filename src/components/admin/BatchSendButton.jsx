@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Send, Check } from 'lucide-react'
+import { useToast } from '../../lib/toast'
 
 export default function BatchSendButton({ readyCount, onBatchSend, disabled }) {
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [result, setResult] = useState(null)
@@ -15,7 +17,7 @@ export default function BatchSendButton({ readyCount, onBatchSend, disabled }) {
       setConfirming(false)
       setTimeout(() => setResult(null), 4000)
     } catch (err) {
-      alert('Error al enviar: ' + (err.message || String(err)))
+      toast.error('Error al enviar: ' + (err.message || String(err)))
       setConfirming(false)
     } finally {
       setLoading(false)

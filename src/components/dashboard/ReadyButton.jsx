@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
+import { useToast } from '../../lib/toast'
 
 export default function ReadyButton({ status, hasTasks, onMarkReady, onUnmarkReady }) {
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
   const isReady = status === 'ready'
   const isSent = status === 'sent'
@@ -18,7 +20,7 @@ export default function ReadyButton({ status, hasTasks, onMarkReady, onUnmarkRea
       }
     } catch (err) {
       console.error('Error updating status:', err)
-      alert('Error al actualizar el estado: ' + err.message)
+      toast.error('Error al actualizar el estado: ' + err.message)
     } finally {
       setLoading(false)
     }

@@ -26,8 +26,8 @@ export default function DashboardPage() {
   const year = now.getFullYear()
   const month = now.getMonth() + 1
 
-  const { stats, allStats, refetch: refetchStats } = useStats(year, month)
-  const { tasks, projects, addTask, updateTask, deleteTask, refetch: refetchTasks } = useTasks(year, month)
+  const { stats, allStats, loading: statsLoading, refetch: refetchStats } = useStats(year, month)
+  const { tasks, projects, loading: tasksLoading, addTask, updateTask, deleteTask, refetch: refetchTasks } = useTasks(year, month)
   const { status, period, markReady, unmarkReady } = usePartnerPeriod(year, month)
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -106,14 +106,15 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Stats row */}
-      <StatsRow stats={stats} />
+      <StatsRow stats={stats} loading={statsLoading} />
 
       {/* Main content: tasks (left) + sidebar (right) */}
-      <div className="grid grid-cols-[1fr_300px] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         {/* Left: Task list */}
         <TaskList
           tasks={tasks}
           totalHours={totalHours}
+          loading={tasksLoading}
           onAdd={handleAdd}
           onEdit={handleEdit}
           onDelete={handleDelete}

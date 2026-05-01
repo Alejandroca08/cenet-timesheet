@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { MessageCircle, Check, Copy, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/auth'
+import { useToast } from '../../lib/toast'
 
 function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000))
@@ -10,6 +11,7 @@ function generateCode() {
 
 export default function TelegramLink({ partner, onLinked }) {
   const { session } = useAuth()
+  const toast = useToast()
   const isLinked = !!partner?.telegram_chat_id
   const [code, setCode] = useState(null)
   const [generating, setGenerating] = useState(false)
@@ -30,7 +32,7 @@ export default function TelegramLink({ partner, onLinked }) {
       if (error) throw error
       setCode(newCode)
     } catch (err) {
-      alert('Error al generar código: ' + (err.message || String(err)))
+      toast.error('Error al generar código: ' + (err.message || String(err)))
     } finally {
       setGenerating(false)
     }
@@ -54,7 +56,7 @@ export default function TelegramLink({ partner, onLinked }) {
       if (error) throw error
       if (onLinked) onLinked()
     } catch (err) {
-      alert('Error al desvincular: ' + (err.message || String(err)))
+      toast.error('Error al desvincular: ' + (err.message || String(err)))
     } finally {
       setUnlinking(false)
     }

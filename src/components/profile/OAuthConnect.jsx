@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Mail, Check, X, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/auth'
+import { useToast } from '../../lib/toast'
 
 const PROVIDERS = [
   {
@@ -23,6 +24,7 @@ const PROVIDERS = [
 
 export default function OAuthConnect() {
   const { session } = useAuth()
+  const toast = useToast()
   const [tokens, setTokens] = useState([])
   const [loading, setLoading] = useState(true)
   const [disconnecting, setDisconnecting] = useState(null)
@@ -54,7 +56,7 @@ export default function OAuthConnect() {
     if (provider === 'google') {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
       if (!clientId) {
-        alert('Google OAuth no está configurado. Configura VITE_GOOGLE_CLIENT_ID en .env')
+        toast.error('Google OAuth no está configurado. Configura VITE_GOOGLE_CLIENT_ID en .env')
         return
       }
       const scope = 'https://www.googleapis.com/auth/gmail.send email profile'
@@ -63,7 +65,7 @@ export default function OAuthConnect() {
     } else if (provider === 'microsoft') {
       const clientId = import.meta.env.VITE_MICROSOFT_CLIENT_ID
       if (!clientId) {
-        alert('Microsoft OAuth no está configurado. Configura VITE_MICROSOFT_CLIENT_ID en .env')
+        toast.error('Microsoft OAuth no está configurado. Configura VITE_MICROSOFT_CLIENT_ID en .env')
         return
       }
       const scope = 'https://graph.microsoft.com/Mail.Send email profile openid'
@@ -90,7 +92,7 @@ export default function OAuthConnect() {
 
       await fetchTokens()
     } catch (err) {
-      alert('Error al desconectar: ' + (err.message || String(err)))
+      toast.error('Error al desconectar: ' + (err.message || String(err)))
     } finally {
       setDisconnecting(null)
     }

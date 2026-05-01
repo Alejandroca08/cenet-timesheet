@@ -25,7 +25,7 @@ export default function ProfilePage() {
         <div className="mt-3 h-[2.5px] w-[52px] rounded-sm bg-terracotta" />
       </motion.div>
 
-      <div className="grid grid-cols-[1fr_340px] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
         {/* Left: Profile form */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}

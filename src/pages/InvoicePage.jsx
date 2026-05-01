@@ -34,28 +34,32 @@ export default function InvoicePage() {
   // Fetch hours directly from tasks table for selected months (always fresh)
   const [totalHours, setTotalHours] = useState(0)
   const [projectNames, setProjectNames] = useState('')
+  const [loadingPeriod, setLoadingPeriod] = useState(true)
 
   const fetchPeriodData = useCallback(async () => {
-    // Query by actual task_date range, not period_month (which can be mismatched)
-    const sortedMonths = [...selectedMonths].sort((a, b) => a - b)
-    const firstMonth = sortedMonths[0]
-    const lastMonth = sortedMonths[sortedMonths.length - 1]
-    const startDate = `${selectedYear}-${String(firstMonth).padStart(2, '0')}-01`
-    const lastDay = new Date(selectedYear, lastMonth, 0).getDate()
-    const endDate = `${selectedYear}-${String(lastMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
-
-    const { data } = await supabase
+    setLoadingPeriod(true)
+    // Query by period_month (consistent with dashboard and materialized view)
+    let query = supabase
       .from('tasks')
       .select('hours, projects(name)')
-      .gte('task_date', startDate)
-      .lte('task_date', endDate)
+      .eq('period_year', selectedYear)
 
-    if (!data) { setTotalHours(0); setProjectNames(''); return }
+    // Support multi-month invoices
+    if (selectedMonths.length === 1) {
+      query = query.eq('period_month', selectedMonths[0])
+    } else {
+      query = query.in('period_month', selectedMonths)
+    }
+
+    const { data } = await query
+
+    if (!data) { setTotalHours(0); setProjectNames(''); setLoadingPeriod(false); return }
 
     const hours = data.reduce((sum, t) => sum + Number(t.hours), 0)
     const projects = [...new Set(data.map(t => t.projects?.name).filter(Boolean))]
     setTotalHours(hours)
     setProjectNames(projects.join(', '))
+    setLoadingPeriod(false)
   }, [selectedYear, selectedMonths])
 
   useEffect(() => { fetchPeriodData() }, [fetchPeriodData])
@@ -178,7 +182,7 @@ export default function InvoicePage() {
         <div className="mt-3 h-[2.5px] w-[52px] rounded-sm bg-terracotta" />
       </motion.div>
 
-      <div className="grid grid-cols-[1fr_300px] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         {/* Left: Preview or placeholder */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
@@ -187,7 +191,7 @@ export default function InvoicePage() {
         >
           {showPreview && generatedInvoice ? (
             <div className="rounded-card border border-brown-border overflow-hidden">
-              <div className="flex items-center justify-between border-b border-brown-hover bg-cream/50 px-6 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-brown-hover bg-cream/50 px-4 sm:px-6 py-3">
                 <div className="flex items-center gap-2">
                   <Eye size={16} className="text-brown-light" />
                   <span className="font-heading text-sm font-medium text-brown-dark">
@@ -284,7 +288,11 @@ export default function InvoicePage() {
               </div>
               <div className="flex justify-between">
                 <span className="font-heading text-xs text-brown-warm">Horas</span>
-                <span className="font-mono text-xs text-brown-dark font-medium">{totalHours}h</span>
+                {loadingPeriod ? (
+                  <span className="h-4 w-10 animate-pulse rounded bg-brown-hover" />
+                ) : (
+                  <span className="font-mono text-xs text-brown-dark font-medium">{totalHours}h</span>
+                )}
               </div>
               <div className="flex justify-between">
                 <span className="font-heading text-xs text-brown-warm">Tarifa</span>
@@ -293,7 +301,11 @@ export default function InvoicePage() {
               <div className="h-px bg-brown-border my-1" />
               <div className="flex justify-between">
                 <span className="font-heading text-[13px] font-semibold text-brown-dark">Total</span>
-                <span className="font-mono text-[15px] font-medium text-terracotta">{formatCOP(totalAmount)}</span>
+                {loadingPeriod ? (
+                  <span className="h-5 w-24 animate-pulse rounded bg-brown-hover" />
+                ) : (
+                  <span className="font-mono text-[15px] font-medium text-terracotta">{formatCOP(totalAmount)}</span>
+                )}
               </div>
             </div>
 

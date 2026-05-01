@@ -20,13 +20,17 @@ const adminItems = [
   { to: '/admin', label: 'Administración', icon: Users },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen, onClose }) {
   const { partner, signOut, isAdmin } = useAuth()
 
   const items = isAdmin ? [...navItems, ...adminItems] : navItems
 
   return (
-    <aside className="fixed left-0 top-0 z-10 flex h-screen w-56 flex-col border-r border-brown-border bg-white/80 backdrop-blur-sm">
+    <aside
+      className={`fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-brown-border bg-white/80 backdrop-blur-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0`}
+    >
       {/* Logo area */}
       <div className="border-b border-brown-border px-5 py-5">
         <h1 className="font-heading text-lg font-bold text-brown-dark tracking-tight">
@@ -44,6 +48,7 @@ export default function Sidebar() {
             key={to}
             to={to}
             end={to === '/'}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-medium transition-all duration-200 ${
                 isActive

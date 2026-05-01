@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Bell, Check } from 'lucide-react'
+import { useToast } from '../../lib/toast'
 
 export default function NudgeButton({ partnerId, onNudge, disabled }) {
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
 
@@ -12,7 +14,7 @@ export default function NudgeButton({ partnerId, onNudge, disabled }) {
       setSent(true)
       setTimeout(() => setSent(false), 3000)
     } catch (err) {
-      alert('Error al enviar recordatorio: ' + (err.message || String(err)))
+      toast.error('Error al enviar recordatorio: ' + (err.message || String(err)))
     } finally {
       setLoading(false)
     }

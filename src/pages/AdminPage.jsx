@@ -77,7 +77,7 @@ export default function AdminPage() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="mb-6 grid grid-cols-4 gap-3"
+        className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3"
       >
         {stats.map((s) => (
           <motion.div
@@ -114,7 +114,7 @@ export default function AdminPage() {
       )}
 
       {/* Main grid */}
-      <div className="grid grid-cols-[1fr_300px] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         {/* Left: Team readiness table */}
         <TeamReadiness
           partners={partners}

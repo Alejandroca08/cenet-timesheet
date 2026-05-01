@@ -11,7 +11,25 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
 }
 
-export default function StatsRow({ stats }) {
+export default function StatsRow({ stats, loading }) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-7">
+        {[0, 1, 2, 3].map(i => (
+          <div
+            key={i}
+            className={`rounded-[14px] px-[18px] py-5 ${
+              i === 3 ? 'bg-brown-dark' : 'bg-white border border-brown-border'
+            }`}
+          >
+            <div className={`h-3 w-16 rounded animate-pulse mb-3 ${i === 3 ? 'bg-brown-warm/30' : 'bg-brown-hover'}`} />
+            <div className={`h-6 w-24 rounded animate-pulse ${i === 3 ? 'bg-brown-warm/20' : 'bg-brown-hover'}`} />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   const totalHours = stats?.total_hours ?? 0
   const grossIncome = stats?.gross_income ?? 0
   const retencion = stats?.retencion_amount ?? 0
@@ -29,7 +47,7 @@ export default function StatsRow({ stats }) {
       variants={container}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-4 gap-3.5 mb-7"
+      className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-7"
     >
       {cards.map((card) => (
         <motion.div
