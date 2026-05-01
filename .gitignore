@@ -1,30 +1,33 @@
-# Documentos personales y sensibles
-*.docx
-*.xlsx
-*.pdf
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Variables de entorno y secretos
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
 .env
 .env.local
 .env.*.local
-*.key
-*.pem
 
-# Dependencias
-node_modules/
-.venv/
-__pycache__/
-*.pyc
-
-# Builds
-dist/
-build/
-*.log
-
-# Sistema
-.DS_Store
-Thumbs.db
-
-# Editores
-.vscode/
-.idea/
+# Office documents (reference files, not source code)
+*.xlsx
+*.docx

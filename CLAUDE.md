@@ -457,3 +457,18 @@ Build in this sequence:
 ---
 
 Start by setting up the project foundation (Phase 1), then proceed phase by phase. Ask me before making architectural decisions that deviate from this spec.
+
+---
+
+## Future: Google & Microsoft OAuth login (post-Phase 6)
+
+After all phases are complete, replace email+password login with OAuth social login:
+
+- **Google OAuth**: Partners log in with personal Gmail. Requires a Google Cloud Console project (free, under Alejandro's personal account).
+- **Microsoft OAuth**: Partners log in with personal Hotmail/Outlook. Requires an Azure app registration set to "personal Microsoft accounts only" (free, under Alejandro's personal account).
+
+**Important constraints:**
+- CENET SA is NOT involved in this project. No `@cenet.co` email integration. No Azure AD / Microsoft 365 admin access.
+- Only personal emails (Gmail, Hotmail, Outlook.com).
+- These same OAuth apps can later be extended with email-sending scopes so n8n can send invoices FROM partners' personal emails (Phase 4 email feature).
+- This is NOT blocking any phase — email+password login works fine for ~10 users.

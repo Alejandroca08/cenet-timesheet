@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm create:*)"
+      "Bash(npm create:*)",
+      "Read(//private/tmp/**)",
+      "Bash(rm -rf cenet-vite-init)",
+      "Bash(cp /tmp/cenet-vite-init/.gitignore /tmp/cenet-vite-init/eslint.config.js /tmp/cenet-vite-init/index.html /tmp/cenet-vite-init/package.json /tmp/cenet-vite-init/vite.config.js /Users/alejocatano02/Documents/WORK/cenet-timesheet/)",
+      "Bash(cp -r /tmp/cenet-vite-init/public /Users/alejocatano02/Documents/WORK/cenet-timesheet/)",
+      "Bash(mkdir -p /Users/alejocatano02/Documents/WORK/cenet-timesheet/src)",
+      "Bash(cp -r /tmp/cenet-vite-init/src/* /Users/alejocatano02/Documents/WORK/cenet-timesheet/src/)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx vite:*)",
+      "Bash(dig:*)"
     ]
   }
 }
