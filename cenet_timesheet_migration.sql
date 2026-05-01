@@ -723,6 +723,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Admin: batch mark all 'ready' periods as 'sent' for a given month
+CREATE OR REPLACE FUNCTION cenet.batch_mark_sent(p_year INT, p_month INT)
+RETURNS INT AS $$
+DECLARE
+  affected INT;
+BEGIN
+  IF NOT cenet.is_admin() THEN
+    RAISE EXCEPTION 'Admin access required';
+  END IF;
+  UPDATE cenet.partner_periods
+  SET status = 'sent', sent_at = NOW()
+  WHERE period_year = p_year AND period_month = p_month AND status = 'ready';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  RETURN affected;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- ============================================================
 -- 8. STORAGE BUCKETS (run via Supabase Dashboard or API)
 -- ============================================================

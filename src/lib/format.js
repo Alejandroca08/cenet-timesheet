@@ -37,3 +37,21 @@ export function getGreeting() {
   if (hour < 18) return "Buenas tardes"
   return "Buenas noches"
 }
+
+/**
+ * Format a timestamp as relative time in Spanish.
+ * Example: "2026-04-30T22:00:00Z" -> "hace 2h"
+ */
+export function formatRelativeTime(dateStr) {
+  if (!dateStr) return '—'
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diffSec = Math.floor((now - then) / 1000)
+
+  if (diffSec < 60) return 'hace un momento'
+  if (diffSec < 3600) return `hace ${Math.floor(diffSec / 60)} min`
+  if (diffSec < 86400) return `hace ${Math.floor(diffSec / 3600)}h`
+  const days = Math.floor(diffSec / 86400)
+  if (days < 7) return `hace ${days} día${days > 1 ? 's' : ''}`
+  return formatDateShort(dateStr)
+}
