@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
 
+async function refreshStats() {
+  try {
+    await supabase.rpc('refresh_monthly_stats')
+  } catch {
+    // Silently ignore — stats will refresh on next cron cycle
+  }
+}
+
 export function useTasks(year, month) {
   const { session } = useAuth()
   const [tasks, setTasks] = useState([])
@@ -73,6 +81,7 @@ export function useTasks(year, month) {
 
     if (error) throw error
     setTasks(prev => [data, ...prev])
+    await refreshStats()
     return data
   }
 
@@ -86,6 +95,7 @@ export function useTasks(year, month) {
 
     if (error) throw error
     setTasks(prev => prev.map(t => (t.id === id ? data : t)))
+    await refreshStats()
     return data
   }
 
@@ -97,9 +107,10 @@ export function useTasks(year, month) {
 
     if (error) throw error
     setTasks(prev => prev.filter(t => t.id !== id))
+    await refreshStats()
   }
 
-  async function bulkAddTasks(taskRows) {
+  async function bulkAddTasks(taskRows, { periodYear, periodMonth } = {}) {
     const dayNames = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
 
     const rows = taskRows.map(t => {
@@ -113,8 +124,8 @@ export function useTasks(year, month) {
         week_number: Math.ceil(date.getDate() / 7),
         hours: t.hours,
         source: 'excel_upload',
-        period_year: year,
-        period_month: month,
+        period_year: periodYear ?? year,
+        period_month: periodMonth ?? month,
       }
     })
 
@@ -125,6 +136,7 @@ export function useTasks(year, month) {
 
     if (error) throw error
     setTasks(prev => [...(data ?? []), ...prev])
+    await refreshStats()
     return data
   }
 

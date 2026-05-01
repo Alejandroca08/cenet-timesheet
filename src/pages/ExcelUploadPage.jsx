@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Upload, FileSpreadsheet, Check, X, AlertTriangle } from 'lucide-react'
 import { parseExcel, getAvailableSheets } from '../lib/excel-parser'
@@ -71,7 +71,11 @@ export default function ExcelUploadPage() {
     setImporting(true)
     setError(null)
     try {
-      await bulkAddTasks(parsedTasks)
+      // selectedMonth is 0-based (monthIndex), period_month is 1-based
+      await bulkAddTasks(parsedTasks, {
+        periodYear: year,
+        periodMonth: selectedMonth + 1,
+      })
       setImported(true)
     } catch (err) {
       setError(err.message)
@@ -87,10 +91,28 @@ export default function ExcelUploadPage() {
     setParsedTasks([])
     setImported(false)
     setError(null)
+    if (inputRef.current) inputRef.current.value = ''
   }
 
   const totalHours = parsedTasks.reduce((sum, t) => sum + t.hours, 0)
   const unmatchedCount = parsedTasks.filter(t => !t.project_id).length
+  const missingHoursCount = parsedTasks.filter(t => !t.has_hours).length
+
+  const updateTask = useCallback((index, field, value) => {
+    setParsedTasks(prev => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], [field]: value }
+
+      if (field === 'hours') {
+        updated[index].has_hours = Number(value) > 0
+      }
+      if (field === 'project_id') {
+        const proj = projects.find(p => p.id === value)
+        updated[index].project_name = proj ? proj.name : 'Sin proyecto'
+      }
+      return updated
+    })
+  }, [projects])
 
   return (
     <div>
@@ -209,11 +231,15 @@ export default function ExcelUploadPage() {
                 </span>
               </div>
 
-              {unmatchedCount > 0 && (
-                <div className="flex items-center gap-2 bg-gold-bg px-6 py-2 border-b border-gold-muted/10">
-                  <AlertTriangle size={13} className="text-gold-muted" />
+              {(unmatchedCount > 0 || missingHoursCount > 0) && (
+                <div className="flex items-center gap-3 bg-gold-bg px-6 py-2 border-b border-gold-muted/10">
+                  <AlertTriangle size={13} className="text-gold-muted flex-shrink-0" />
                   <span className="font-heading text-[11px] text-gold-muted">
-                    {unmatchedCount} tarea(s) sin proyecto asignado
+                    {[
+                      unmatchedCount > 0 && `${unmatchedCount} sin proyecto`,
+                      missingHoursCount > 0 && `${missingHoursCount} sin horas`,
+                    ].filter(Boolean).join(' · ')}
+                    {' — puedes editar antes de importar'}
                   </span>
                 </div>
               )}
@@ -232,21 +258,46 @@ export default function ExcelUploadPage() {
                     {parsedTasks.map((t, i) => (
                       <tr
                         key={i}
-                        className="border-b border-brown-hover/50 last:border-b-0 hover:bg-cream/30 transition-colors"
+                        className={`border-b border-brown-hover/50 last:border-b-0 transition-colors ${
+                          !t.has_hours ? 'bg-gold-bg/30' : 'hover:bg-cream/30'
+                        }`}
                       >
                         <td className="px-6 py-2 font-mono text-xs text-brown-dark">
                           {formatDateShort(t.task_date)}
                         </td>
-                        <td className="px-4 py-2">
-                          <span className={`font-heading text-xs ${t.project_id ? 'text-brown-dark' : 'text-gold-muted'}`}>
-                            {t.project_name}
-                          </span>
+                        <td className="px-4 py-1.5">
+                          <select
+                            value={t.project_id ?? ''}
+                            onChange={(e) => updateTask(i, 'project_id', e.target.value || null)}
+                            className={`w-full rounded-md border px-2 py-1 font-heading text-xs transition-colors ${
+                              t.project_id
+                                ? 'border-brown-border bg-white text-brown-dark'
+                                : 'border-gold-muted/30 bg-gold-bg/50 text-gold-muted'
+                            }`}
+                          >
+                            <option value="">Sin proyecto</option>
+                            {projects.map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                          </select>
                         </td>
                         <td className="px-4 py-2 text-sm text-brown-dark max-w-[300px] truncate">
                           {t.task_description}
                         </td>
-                        <td className="px-4 py-2 text-right font-mono text-xs font-medium text-terracotta">
-                          {t.hours}h
+                        <td className="px-4 py-1.5 text-right">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={t.hours || ''}
+                            onChange={(e) => updateTask(i, 'hours', Number(e.target.value) || 0)}
+                            placeholder="0"
+                            className={`w-16 rounded-md border px-2 py-1 text-right font-mono text-xs font-medium transition-colors ${
+                              t.has_hours
+                                ? 'border-brown-border bg-white text-terracotta'
+                                : 'border-gold-muted/30 bg-gold-bg/50 text-gold-muted placeholder:text-gold-muted/50'
+                            }`}
+                          />
                         </td>
                       </tr>
                     ))}

@@ -460,15 +460,15 @@ Start by setting up the project foundation (Phase 1), then proceed phase by phas
 
 ---
 
-## Future: Google & Microsoft OAuth login (post-Phase 6)
+## Backlog — Things to do after all phases are complete
 
-After all phases are complete, replace email+password login with OAuth social login:
+Items to revisit once the core app is fully built. None of these are blocking.
 
-- **Google OAuth**: Partners log in with personal Gmail. Requires a Google Cloud Console project (free, under Alejandro's personal account).
-- **Microsoft OAuth**: Partners log in with personal Hotmail/Outlook. Requires an Azure app registration set to "personal Microsoft accounts only" (free, under Alejandro's personal account).
+### 1. Google & Microsoft OAuth login
+Replace email+password login with OAuth social login. Partners log in with personal Gmail (Google Cloud Console project) or personal Hotmail/Outlook (Azure app registration, "personal accounts only"). Both free, under Alejandro's personal accounts. These same OAuth apps can later be extended with email-sending scopes for Phase 4. **Constraint:** CENET SA is NOT involved — no `@cenet.co` integration, only personal emails.
 
-**Important constraints:**
-- CENET SA is NOT involved in this project. No `@cenet.co` email integration. No Azure AD / Microsoft 365 admin access.
-- Only personal emails (Gmail, Hotmail, Outlook.com).
-- These same OAuth apps can later be extended with email-sending scopes so n8n can send invoices FROM partners' personal emails (Phase 4 email feature).
-- This is NOT blocking any phase — email+password login works fine for ~10 users.
+### 2. User-created projects
+Let partners create their own projects from the dashboard instead of only admins via SQL. Decide if partner-created projects are shared (visible to all) or private. Requires updating the RLS `projects_admin_insert` policy.
+
+### 3. Change PDF style and file name
+Review and update the cuenta de cobro PDF output — improve the visual style/layout and update the file naming convention for downloaded PDFs.

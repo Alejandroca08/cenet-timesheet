@@ -480,51 +480,51 @@ CREATE POLICY settings_admin_modify ON settings
 -- ============================================================
 
 -- Calculate total hours for a partner in a given period
-CREATE OR REPLACE FUNCTION get_partner_period_hours(
+CREATE OR REPLACE FUNCTION cenet.get_partner_period_hours(
   p_partner_id UUID,
   p_year INT,
   p_month INT
 )
 RETURNS NUMERIC AS $$
   SELECT COALESCE(SUM(hours), 0)
-  FROM tasks
+  FROM cenet.tasks
   WHERE partner_id = p_partner_id
     AND period_year = p_year
     AND period_month = p_month;
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 -- Calculate total amount for a partner in a given period
-CREATE OR REPLACE FUNCTION get_partner_period_amount(
+CREATE OR REPLACE FUNCTION cenet.get_partner_period_amount(
   p_partner_id UUID,
   p_year INT,
   p_month INT
 )
 RETURNS NUMERIC AS $$
-  SELECT get_partner_period_hours(p_partner_id, p_year, p_month)
-       * (SELECT hourly_rate FROM partners WHERE id = p_partner_id);
+  SELECT cenet.get_partner_period_hours(p_partner_id, p_year, p_month)
+       * (SELECT hourly_rate FROM cenet.partners WHERE id = p_partner_id);
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 -- Check if a partner exceeds the SMLMV threshold (needs planilla)
-CREATE OR REPLACE FUNCTION needs_social_security(
+CREATE OR REPLACE FUNCTION cenet.needs_social_security(
   p_partner_id UUID,
   p_year INT,
   p_month INT
 )
 RETURNS BOOLEAN AS $$
-  SELECT get_partner_period_amount(p_partner_id, p_year, p_month)
+  SELECT cenet.get_partner_period_amount(p_partner_id, p_year, p_month)
        >= COALESCE(
-            (SELECT (value->>'amount')::NUMERIC FROM settings WHERE key = 'smlmv'),
+            (SELECT (value->>'amount')::NUMERIC FROM cenet.settings WHERE key = 'smlmv'),
             0
           );
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 -- Get next invoice number for a partner (and increment counter)
-CREATE OR REPLACE FUNCTION next_invoice_number(p_partner_id UUID)
+CREATE OR REPLACE FUNCTION cenet.next_invoice_number(p_partner_id UUID)
 RETURNS INT AS $$
 DECLARE
   next_num INT;
 BEGIN
-  UPDATE partners
+  UPDATE cenet.partners
   SET invoice_counter = invoice_counter + 1
   WHERE id = p_partner_id
   RETURNING invoice_counter INTO next_num;
@@ -566,16 +566,16 @@ ON CONFLICT (key) DO NOTHING;
 -- planilla total, and take-home pay.
 -- Refresh after bulk task changes or at month-end via n8n.
 
-CREATE MATERIALIZED VIEW partner_monthly_stats AS
+CREATE MATERIALIZED VIEW cenet.partner_monthly_stats AS
 WITH
   config AS (
     SELECT
-      COALESCE((SELECT (value->>'amount')::NUMERIC FROM settings WHERE key = 'smlmv'), 0)             AS smlmv,
-      COALESCE((SELECT (value->>'total')::NUMERIC  FROM settings WHERE key = 'aportes_rates'), 0.29022) AS aportes_total_rate,
-      COALESCE((SELECT (value->>'salud')::NUMERIC  FROM settings WHERE key = 'aportes_rates'), 0.125)   AS aportes_salud_rate,
-      COALESCE((SELECT (value->>'pension')::NUMERIC FROM settings WHERE key = 'aportes_rates'), 0.16)   AS aportes_pension_rate,
-      COALESCE((SELECT (value->>'riesgos_laborales')::NUMERIC FROM settings WHERE key = 'aportes_rates'), 0.00522) AS aportes_arl_rate,
-      COALESCE((SELECT (value->>'rate')::NUMERIC   FROM settings WHERE key = 'retencion_rate'), 0)     AS retencion_rate
+      COALESCE((SELECT (value->>'amount')::NUMERIC FROM cenet.settings WHERE key = 'smlmv'), 0)             AS smlmv,
+      COALESCE((SELECT (value->>'total')::NUMERIC  FROM cenet.settings WHERE key = 'aportes_rates'), 0.29022) AS aportes_total_rate,
+      COALESCE((SELECT (value->>'salud')::NUMERIC  FROM cenet.settings WHERE key = 'aportes_rates'), 0.125)   AS aportes_salud_rate,
+      COALESCE((SELECT (value->>'pension')::NUMERIC FROM cenet.settings WHERE key = 'aportes_rates'), 0.16)   AS aportes_pension_rate,
+      COALESCE((SELECT (value->>'riesgos_laborales')::NUMERIC FROM cenet.settings WHERE key = 'aportes_rates'), 0.00522) AS aportes_arl_rate,
+      COALESCE((SELECT (value->>'rate')::NUMERIC   FROM cenet.settings WHERE key = 'retencion_rate'), 0)     AS retencion_rate
   ),
   task_agg AS (
     SELECT
@@ -587,7 +587,7 @@ WITH
       COUNT(DISTINCT t.task_date)     AS days_worked,
       MIN(t.task_date)                AS first_task_date,
       MAX(t.task_date)                AS last_task_date
-    FROM tasks t
+    FROM cenet.tasks t
     GROUP BY t.partner_id, t.period_year, t.period_month
   ),
   project_hours AS (
@@ -597,8 +597,8 @@ WITH
       t.period_month,
       COALESCE(p.name, 'Sin proyecto') AS project_name,
       round(SUM(t.hours), 2) AS project_total
-    FROM tasks t
-    LEFT JOIN projects p ON p.id = t.project_id
+    FROM cenet.tasks t
+    LEFT JOIN cenet.projects p ON p.id = t.project_id
     GROUP BY t.partner_id, t.period_year, t.period_month, COALESCE(p.name, 'Sin proyecto')
   ),
   project_breakdown AS (
@@ -662,31 +662,31 @@ SELECT
   pp.marked_ready_at,
   pp.sent_at
 FROM task_agg ta
-JOIN partners pr ON pr.id = ta.partner_id
+JOIN cenet.partners pr ON pr.id = ta.partner_id
 LEFT JOIN project_breakdown pb
   ON  pb.partner_id  = ta.partner_id
   AND pb.period_year = ta.period_year
   AND pb.period_month = ta.period_month
-LEFT JOIN partner_periods pp
+LEFT JOIN cenet.partner_periods pp
   ON  pp.partner_id  = ta.partner_id
   AND pp.period_year = ta.period_year
   AND pp.period_month = ta.period_month
 CROSS JOIN config c;
 
 CREATE UNIQUE INDEX idx_partner_monthly_stats
-  ON partner_monthly_stats(partner_id, period_year, period_month);
+  ON cenet.partner_monthly_stats(partner_id, period_year, period_month);
 
 -- RLS isn't supported on materialized views, so we use
 -- security-definer functions to enforce access control.
 
 -- Partner sees only their own stats
-CREATE OR REPLACE FUNCTION get_my_monthly_stats(
+CREATE OR REPLACE FUNCTION cenet.get_my_monthly_stats(
   p_year INT DEFAULT NULL,
   p_month INT DEFAULT NULL
 )
-RETURNS SETOF partner_monthly_stats AS $$
+RETURNS SETOF cenet.partner_monthly_stats AS $$
   SELECT *
-  FROM partner_monthly_stats
+  FROM cenet.partner_monthly_stats
   WHERE partner_id = auth.uid()
     AND (p_year  IS NULL OR period_year  = p_year)
     AND (p_month IS NULL OR period_month = p_month)
@@ -694,31 +694,31 @@ RETURNS SETOF partner_monthly_stats AS $$
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 -- Admin sees all partners (readiness dashboard — no financial details)
-CREATE OR REPLACE FUNCTION get_team_readiness(p_year INT, p_month INT)
+CREATE OR REPLACE FUNCTION cenet.get_team_readiness(p_year INT, p_month INT)
 RETURNS TABLE (
   partner_id     UUID,
   full_name      TEXT,
   total_hours    NUMERIC,
   task_count     BIGINT,
-  period_status  period_status,
+  period_status  cenet.period_status,
   marked_ready_at TIMESTAMPTZ
 ) AS $$
   SELECT
     s.partner_id, pr.full_name,
     s.total_hours, s.task_count,
     s.period_status, s.marked_ready_at
-  FROM partner_monthly_stats s
-  JOIN partners pr ON pr.id = s.partner_id
+  FROM cenet.partner_monthly_stats s
+  JOIN cenet.partners pr ON pr.id = s.partner_id
   WHERE s.period_year = p_year
     AND s.period_month = p_month
-    AND is_admin();
+    AND cenet.is_admin();
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 -- Refresh function (call from n8n cron or after bulk operations)
-CREATE OR REPLACE FUNCTION refresh_monthly_stats()
+CREATE OR REPLACE FUNCTION cenet.refresh_monthly_stats()
 RETURNS VOID AS $$
 BEGIN
-  REFRESH MATERIALIZED VIEW CONCURRENTLY partner_monthly_stats;
+  REFRESH MATERIALIZED VIEW CONCURRENTLY cenet.partner_monthly_stats;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

@@ -59,22 +59,22 @@ export default function DashboardPage() {
     } else {
       await addTask(formData)
     }
-    refetchStats()
+    refreshAll()
   }
 
   async function handleDelete(id) {
     await deleteTask(id)
-    refetchStats()
+    refreshAll()
   }
 
   async function handleMarkReady() {
     await markReady()
-    refetchStats()
+    refreshAll()
   }
 
   async function handleUnmarkReady() {
     await unmarkReady()
-    refetchStats()
+    refreshAll()
   }
 
   return (

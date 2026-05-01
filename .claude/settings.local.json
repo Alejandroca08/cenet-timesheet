@@ -11,7 +11,9 @@
       "Bash(npm install:*)",
       "Bash(npx tailwindcss:*)",
       "Bash(npx vite:*)",
-      "Bash(dig:*)"
+      "Bash(dig:*)",
+      "Bash(grep -r \"fetchPartner\\\\|signOut\\\\|excelDateToISO\\\\|numberToWords\\\\|formatCOP\" src --include=*.jsx --include=*.js -n)",
+      "Bash(grep:*)"
     ]
   }
 }
