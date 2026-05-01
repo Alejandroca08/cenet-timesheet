@@ -87,6 +87,7 @@ CREATE TABLE partners (
   cc_issued_in  TEXT,                  -- e.g. "Santa Rosa de Cabal"
   email         TEXT        NOT NULL UNIQUE,
   telegram_chat_id BIGINT,            -- Telegram chat ID for bot notifications
+  telegram_verification_code TEXT,    -- Temporary 6-digit code for linking Telegram
   hourly_rate   NUMERIC(12,2) NOT NULL DEFAULT 0,
   bank_name     TEXT,                  -- e.g. "Nubank"
   bank_account_type TEXT,             -- e.g. "Cuenta de ahorros"

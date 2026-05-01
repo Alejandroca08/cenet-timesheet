@@ -61,12 +61,19 @@ export function AuthProvider({ children }) {
     setPartner(null)
   }
 
+  async function refetchPartner() {
+    if (session?.user?.id) {
+      await fetchPartner(session.user.id)
+    }
+  }
+
   const value = {
     session,
     partner,
     loading,
     signIn,
     signOut,
+    refetchPartner,
     isAdmin: partner?.is_admin ?? false,
   }
 

@@ -464,11 +464,18 @@ Start by setting up the project foundation (Phase 1), then proceed phase by phas
 
 Items to revisit once the core app is fully built. None of these are blocking.
 
-### 1. Google & Microsoft OAuth login
+### 1. OAuth email-sending setup (Google + Microsoft)
+Complete the OAuth flow for sending cuentas de cobro from each partner's personal email. Requires:
+- **Google Cloud Console**: Create OAuth 2.0 credentials (Web app), enable Gmail API, add redirect URI (`/oauth/callback`). Put Client ID in `.env` as `VITE_GOOGLE_CLIENT_ID`, Client Secret in Edge Function env.
+- **Azure Portal**: Register app (personal accounts only), add redirect URI, create client secret. Put Client ID in `.env` as `VITE_MICROSOFT_CLIENT_ID`, Client Secret in Edge Function env.
+- **Supabase Edge Function** (`oauth-exchange`): Server-side function that receives the authorization code from the frontend, exchanges it with Google/Microsoft token endpoint using the client secret, and returns `{ access_token, refresh_token, email, expires_at }`. Secrets must NOT be in the frontend.
+- The frontend UI (OAuthConnect component + OAuthCallbackPage) is already built and ready.
+
+### 2. Google & Microsoft OAuth login
 Replace email+password login with OAuth social login. Partners log in with personal Gmail (Google Cloud Console project) or personal Hotmail/Outlook (Azure app registration, "personal accounts only"). Both free, under Alejandro's personal accounts. These same OAuth apps can later be extended with email-sending scopes for Phase 4. **Constraint:** CENET SA is NOT involved — no `@cenet.co` integration, only personal emails.
 
-### 2. User-created projects
+### 3. User-created projects
 Let partners create their own projects from the dashboard instead of only admins via SQL. Decide if partner-created projects are shared (visible to all) or private. Requires updating the RLS `projects_admin_insert` policy.
 
-### 3. Change PDF style and file name
+### 4. Change PDF style and file name
 Review and update the cuenta de cobro PDF output — improve the visual style/layout and update the file naming convention for downloaded PDFs.

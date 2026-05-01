@@ -7,6 +7,7 @@ import ExcelUploadPage from './pages/ExcelUploadPage'
 import InvoicePage from './pages/InvoicePage'
 import ProfilePage from './pages/ProfilePage'
 import AdminPage from './pages/AdminPage'
+import OAuthCallbackPage from './pages/OAuthCallbackPage'
 
 function ProtectedRoute({ children }) {
   const { session, loading } = useAuth()
@@ -62,6 +63,16 @@ export default function App() {
             <PublicRoute>
               <LoginPage />
             </PublicRoute>
+          }
+        />
+
+        {/* OAuth callback (protected but outside AppShell) */}
+        <Route
+          path="/oauth/callback"
+          element={
+            <ProtectedRoute>
+              <OAuthCallbackPage />
+            </ProtectedRoute>
           }
         />
 
