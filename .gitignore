@@ -1,0 +1,30 @@
+# Documentos personales y sensibles
+*.docx
+*.xlsx
+*.pdf
+
+# Variables de entorno y secretos
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Dependencias
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Builds
+dist/
+build/
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
